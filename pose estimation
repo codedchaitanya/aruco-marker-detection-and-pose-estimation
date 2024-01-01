@@ -1,0 +1,45 @@
+import cv2
+import numpy as np
+import camera
+
+def track(matrix_coefficients, distortion_coefficients):
+    while True:
+        ret, frame = cap.read()
+        
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)  
+        aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_250)  
+        parameters = aruco.DetectorParameters_create()  
+        
+        corners, ids, rejected_img_points = aruco.detectMarkers(gray, aruco_dict,
+                                                                parameters=parameters,
+                                                                cameraMatrix=matrix_coefficients,
+                                                                distCoeff=distortion_coefficients)
+        if np.all(ids is not None):  
+            for i in range(0, len(ids)):  
+                
+                rvec, tvec, markerPoints = aruco.estimatePoseSingleMarkers(corners[i], 0.02, matrix_coefficients,
+                                                                           distortion_coefficients)
+                (rvec - tvec).any()  
+                aruco.drawDetectedMarkers(frame, corners)  
+                aruco.drawAxis(frame, matrix_coefficients, distortion_coefficients, rvec, tvec, 0.01)  # Draw Axis
+        
+        cv2.imshow('frame', frame)
+        
+        key = cv2.waitKey(3) & 0xFF
+        if key == ord('q'):  
+            break
+    
+    
+    cap.release()
+    cv2.destroyAllWindows()
+video=cv2.videocapture(0)
+while True:
+    ret,frame=vid.read()
+    cv2.imshow('frame',frame)
+    if cv2.waitkey(1)& 0xff==ord('q'):
+        break
+vid.release()
+cv2.destroyAllwindows()
+
+matrix_coeff, dist_coeff = camera.load_coefficients("calibration.yaml")
+track(matrix_coeff,dist_coeff)
